@@ -56,6 +56,9 @@ func buildDescription(story Story) string {
 			fmt.Sprintf("- %s / labels: \"%s\" issueType:\"task\" \n", checkItem, TEAM_LABEL))
 	}
 
+	desc = append(desc, fmt.Sprintf("\n\nTrello Card: %s", story.CardUrl))
+
+
 	descStr := strings.Join(desc, " ")
 
 	return descStr
