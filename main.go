@@ -9,25 +9,34 @@ import (
 	"strings"
 	"github.com/adlio/trello"
 	"github.com/andygrunwald/go-jira"
+	"time"
+	json2 "encoding/json"
 )
 
 var (
-	flagTrelloToken = flag.String("trello_token", "", "set your trello token")
-	flagJiraPass    = flag.String("jira-pass", "", "your jira password")
-	flagJiraUser    = flag.String("jira-user", "", "your jira username")
+	flagTrelloToken = flag.String("trello-token", "", "set your trello token")
 	flagJiraHost    = flag.String("jira-host", "https://issues.jboss.org", "your jira installation host")
+	flagJiraUser    = flag.String("jira-user", "", "your jira username")
+	flagJiraPass    = flag.String("jira-pass", "", "your jira password")
+	writeStories	= flag.Bool("out", false, "whether you want output stories to json file")
 	jiraClient      *jira.Client
 )
 
 func createJiraClient() {
 	authURL := fmt.Sprintf("%s/rest/auth/1/session", *flagJiraHost)
-	tp := jira.CookieAuthTransport{
+	if *flagJiraUser == "" {
+		*flagJiraUser = os.Getenv("JIRA_USER")
+	}
+	if *flagJiraPass == "" {
+		*flagJiraPass = os.Getenv("JIRA_PASS")
+	}
+
+ 	tp := jira.CookieAuthTransport{
 		Username: *flagJiraUser,
 		Password: *flagJiraPass,
 		AuthURL:  authURL,
 	}
 
-	fmt.Println(tp)
 
 	c, err := jira.NewClient(tp.Client(), *flagJiraHost)
 	if err != nil {
@@ -46,27 +55,10 @@ func AddToJira() {
 		log.Fatal("no jira client")
 		return
 	}
-
-}
-
-func main() {
-	flag.Parse()
-	createJiraClient()
-
-	//get sample epic
-	sampleEpic, _, _ := jiraClient.Issue.Get("AEROGEAR-2363", nil)
-
-	stories := getStoriesFromTrello()
-
-	for _, story := range stories{
-		epic := buildEpic(story, sampleEpic)
-		fmt.Println(epic)
-		//jiraClient.Issue.Create(&epic)
-	}
-
 }
 
 func getStoriesFromTrello()[]Story{
+	//system env vars in your
 	appKey := os.Getenv("TRELLO_APP_KEY")
 	token := os.Getenv("TRELLO_TOKEN")
 
@@ -116,4 +108,16 @@ func processCards(cards []*trello.Card) []Story{
 		})
 	}
 	return stories
+}
+
+func main() {
+	flag.Parse()
+	createJiraClient()
+	
+	stories := getStoriesFromTrello()
+
+	if *writeStories {
+		storiesJson, _ := json2.MarshalIndent(stories, "", "  ")
+		ioutil.WriteFile("stories_" + time.Now().Format(time.RFC822)+ ".json", storiesJson, 0666)
+	}
 }

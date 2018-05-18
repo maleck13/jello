@@ -10,7 +10,7 @@ type Attachment struct{
 	URL string `json:"url"`
 }
 type Story struct{
-	Name string `json:"name"`
+	Name string `json:"story_name"`
 	StoryPoints string `json:"story_points"`
 	Labels []string `json:"labels"`
 	Checklists map[string][]string `json:"checklists"`
