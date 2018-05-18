@@ -113,22 +113,11 @@ func processCards(cards []*trello.Card) []Story{
 func main() {
 	flag.Parse()
 	createJiraClient()
-
-	//get sample epic
-	//sampleEpic, _, _ := jiraClient.Issue.Get("AEROGEAR-2363", nil)
-
+	
 	stories := getStoriesFromTrello()
 
 	if *writeStories {
 		storiesJson, _ := json2.MarshalIndent(stories, "", "  ")
 		ioutil.WriteFile("stories_" + time.Now().Format(time.RFC822)+ ".json", storiesJson, 0666)
 	}
-
-
-	//for _, story := range stories{
-	//	epic := buildEpic(story, sampleEpic)
-	//	fmt.Println(epic)
-	//	//jiraClient.Issue.Create(&epic)
-	//}
-
 }
